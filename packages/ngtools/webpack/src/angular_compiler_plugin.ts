@@ -454,7 +454,7 @@ export class AngularCompilerPlugin {
       });
       timeEnd('AngularCompilerPlugin._listLazyRoutesFromProgram.createProgram');
 
-      entryRoute = this.entryModule.path + '#' + this.entryModule.className;
+      entryRoute = workaroundResolve(this.entryModule.path) + '#' + this.entryModule.className;
     } else {
       ngProgram = this._program as Program;
     }
@@ -500,10 +500,14 @@ export class AngularCompilerPlugin {
         const lazyRouteTSFile = discoveredLazyRoutes[lazyRouteKey].replace(/\\/g, '/');
         let modulePath: string, moduleKey: string;
 
-        if (this._JitMode) {
+        if (this._JitMode ||
+          // When using Ivy and not using allowEmptyCodegenFiles, factories are not generated.
+          (this._compilerOptions.enableIvy && !this._compilerOptions.allowEmptyCodegenFiles)
+        ) {
           modulePath = lazyRouteTSFile;
           moduleKey = `${lazyRouteModule}${moduleName ? '#' + moduleName : ''}`;
         } else {
+          // NgFactories are only used with AOT on ngc (legacy) mode.
           modulePath = lazyRouteTSFile.replace(/(\.d)?\.tsx?$/, '');
           modulePath += '.ngfactory.js';
           const factoryModuleName = moduleName ? `#${moduleName}NgFactory` : '';

@@ -19,11 +19,6 @@ export default function () {
     return Promise.resolve();
   }
 
-  // Skip this in ejected tests.
-  if (getGlobalVariable('argv').eject) {
-    return Promise.resolve();
-  }
-
   // Skip this test in Angular 2/4.
   if (getGlobalVariable('argv').ng2 || getGlobalVariable('argv').ng4) {
     return Promise.resolve();
@@ -70,7 +65,8 @@ export default function () {
     .then(() => expectToFail(() => ng('build', '--aot')))
     .then(({ message }) => {
       if (!message.includes('Function calls are not supported')
-        && !message.includes('Function expressions are not supported in decorators')) {
+        && !message.includes('Function expressions are not supported in decorators')
+        && !message.includes('selector must be a string')) {
         throw new Error(`Expected static analysis error, got this instead:\n${message}`);
       }
       if (extraErrors.some((e) => message.includes(e))) {
